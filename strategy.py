@@ -2,8 +2,6 @@ import queue
 import process
 #####################################################################################
 TimeLine = []
-X = []
-Y = [] #可视化用
 Plist = [] #综合统计
 #####################################################################################
 def get_arrive(x):
@@ -19,10 +17,7 @@ def FCFS(input):
     now = 0
     while not q.empty():
         [arrive,serve,index] = q.get()
-        X.append([now,now+serve])
-        Y.append([index,index])
         TimeLine.extend([index]*serve)
-        print(TimeLine)
         Plist.append(process.process(arrive, serve, now, now + serve, index))
         now = now + serve
 
@@ -37,31 +32,34 @@ def SJF(input):#非抢占型
                 prepare.append(x)
         prepare.sort(key=get_serve)
         [arrive, serve, index] = prepare[0]
-        X.append([now, now + serve])
-        Y.append([index, index])
         TimeLine.extend([index]*serve)
-        print(TimeLine)
         Plist.append(process.process(arrive, serve, now, now + serve, index))
         now = now + serve
         input.remove([arrive, serve, index])
         prepare.remove([arrive, serve, index])
 
 def RR(input):
-    global X,Y
     input.sort(key=get_arrive)
     prepare = []
+    start_record = [-1,-1,-1,-1]
     now=0
-    input = [[x[0],x[1],x[2],x[1]] for x in input]
-    X = [[] for x in range(len(input))]
-    Y = [[] for x in range(len(input))]
-    while True:
-        for x in input:
-            if x[0]<=now and x[3]>0:
+    Data = [[x[0],x[1],x[2],x[1]] for x in input]
+    while len(Data)!=0:
+        for x in Data:
+            if x[0]<=now and x[3]>0 and (x not in prepare):
                 prepare.append(x)
         [arrive, serve, index, left] = prepare[0]
-        X
+        if start_record[index-1] == -1:#记录每个进程的开始时间
+            start_record[index-1] = now
+        TimeLine.append(index)
+        prepare.remove([arrive, serve, index, left])
+        Data.remove([arrive, serve, index, left])
+        if left>1:
+            Data.append([arrive, serve, index, left-1])
+        else:
+            Plist.append(process.process(arrive, serve, start_record[index-1], now+1, index))
+        now = now + 1
+
 def recover():
-    X.clear()
-    Y.clear()
     TimeLine.clear()
     Plist.clear()
